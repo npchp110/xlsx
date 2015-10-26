@@ -1,6 +1,8 @@
 package xlsx
 
-import "reflect"
+import (
+	"reflect"
+)
 
 // Writes an array to row r. Accepts a pointer to array type 'e',
 // and writes the number of columns to write, 'cols'. If 'cols' is < 0,
@@ -24,37 +26,24 @@ func (r *Row) WriteSlice(e interface{}, cols int) int {
 		n = cols
 	}
 
-	var i int
-	switch t.Elem().Kind() { // underlying type of slice
-	case reflect.String:
-		for i = 0; i < n; i++ {
-			cell := r.AddCell()
-			cell.SetString(v.Index(i).Interface().(string))
-		}
-	case reflect.Int, reflect.Int8,
-		reflect.Int16, reflect.Int32:
-		for i = 0; i < n; i++ {
-			cell := r.AddCell()
-			cell.SetInt(v.Index(i).Interface().(int))
-		}
-	case reflect.Int64:
-		for i = 0; i < n; i++ {
-			cell := r.AddCell()
-			cell.SetInt64(v.Index(i).Interface().(int64))
-		}
-	case reflect.Bool:
-		for i = 0; i < n; i++ {
-			cell := r.AddCell()
-			cell.SetBool(v.Index(i).Interface().(bool))
-		}
-	case reflect.Float64, reflect.Float32:
-		for i = 0; i < n; i++ {
-			cell := r.AddCell()
-			cell.SetFloat(v.Index(i).Interface().(float64))
+	for i := 0; i < n; i++ {
+		cell := r.AddCell()
+		vi := v.Index(i).Elem()
+		switch vi.Kind() { // underlying type of slice
+		case reflect.String:
+			cell.SetString(vi.Interface().(string))
+		case reflect.Int, reflect.Int8,
+			reflect.Int16, reflect.Int32:
+			cell.SetInt(vi.Interface().(int))
+		case reflect.Int64:
+			cell.SetInt64(vi.Interface().(int64))
+		case reflect.Bool:
+			cell.SetBool(vi.Interface().(bool))
+		case reflect.Float64, reflect.Float32:
+			cell.SetFloat(vi.Interface().(float64))
 		}
 	}
-
-	return i
+	return n
 }
 
 // Writes a struct to row r. Accepts a pointer to struct type 'e',
